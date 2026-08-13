@@ -1,4 +1,3 @@
-import React from 'react';
 import { useMailStore } from './store';
 import { Login } from './components/Login';
 import { Sidebar } from './components/Sidebar';

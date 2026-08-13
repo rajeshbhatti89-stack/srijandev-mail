@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Send, Paperclip } from 'lucide-react';
 import { useMailStore } from '../store';
 import { api } from '../api';

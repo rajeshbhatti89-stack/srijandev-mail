@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Inbox, Send, FileEdit, Archive, Trash2, LogOut } from 'lucide-react';
 import { useMailStore } from '../store';
 import { api } from '../api';
