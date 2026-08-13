@@ -1,0 +1,17 @@
+name = "srijandev-platform-hub"
+main = "src/index.ts"
+compatibility_date = "2024-08-06"
+compatibility_flags = ["nodejs_compat"]
+
+# Frontend Build Directory Settings
+[assets]
+directory = "./client/dist"
+
+routes = [
+  { pattern = "mail.srijandev.in/*", zone_name = "srijandev.in" }
+]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "srijandev_mail_db"
+database_id = "ce107584-d5cb-44ee-b250-98e99bca4520"
