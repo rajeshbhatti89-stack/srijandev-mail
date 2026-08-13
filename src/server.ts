@@ -87,39 +87,45 @@ app.get('/api/attachments/:id', async (c) => {
   return new Response(attachment.content, { headers });
 });
 
-// Send an email (via Resend)
+// Send an email (via MailChannels)
 app.post('/api/send', async (c) => {
   const userId = c.get('userId');
   const { to, subject, body } = await c.req.json();
-  const apiKey = c.env.RESEND_API_KEY;
-
-  if (!apiKey) {
-    return c.json({ error: 'RESEND_API_KEY not configured' }, 500);
-  }
 
   // Fetch admin email for the 'from' address
   const user = await c.env.DB.prepare('SELECT email FROM users WHERE id = ?').bind(userId).first<{ email: string }>();
   if (!user) return c.json({ error: 'User not found' }, 404);
 
-  const from = `Webmail <${user.email}>`; // Make sure the domain is verified in Resend
+  const from = user.email;
 
-  const res = await fetch('https://api.resend.com/emails', {
+  const res = await fetch('https://api.mailchannels.net/tx/v1/send', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      from,
-      to,
-      subject,
-      html: body
+      personalizations: [
+        {
+          to: [{ email: to }]
+        }
+      ],
+      from: {
+        email: from,
+        name: "Webmail"
+      },
+      subject: subject,
+      content: [
+        {
+          type: "text/html",
+          value: body
+        }
+      ]
     })
   });
 
   if (!res.ok) {
     const errorText = await res.text();
-    return c.json({ error: 'Failed to send email', details: errorText }, 500);
+    return c.json({ error: 'Failed to send email via Mailchannels', details: errorText }, 500);
   }
 
   // Save to Sent folder
@@ -128,7 +134,7 @@ app.post('/api/send', async (c) => {
     const emailId = crypto.randomUUID();
     await c.env.DB.prepare(
       'INSERT INTO emails (id, user_id, folder_id, sender, recipient, subject, html_body, read_status) VALUES (?, ?, ?, ?, ?, ?, ?, 1)'
-    ).bind(emailId, userId, sentFolder.id, from, to, subject, body).run();
+    ).bind(emailId, userId, sentFolder.id, `Webmail <${from}>`, to, subject, body).run();
   }
 
   return c.json({ success: true });
