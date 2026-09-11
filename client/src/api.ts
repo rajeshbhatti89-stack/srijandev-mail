@@ -44,7 +44,7 @@ export const api = {
     return res.json();
   },
   
-  updateProfile: async (data: { name: string; password?: string }) => {
+  updateProfile: async (data: { name: string; password?: string; avatar?: string }) => {
     const res = await fetchWithAuth('/profile', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -79,11 +79,29 @@ export const api = {
     return res.json();
   },
   
+  bulkStarEmails: async (emailIds: string[], is_starred: boolean) => {
+    const res = await fetchWithAuth('/emails/bulk-star', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email_ids: emailIds, is_starred }),
+    });
+    return res.json();
+  },
+  
   moveEmail: async (emailId: string, folder_id: string) => {
     const res = await fetchWithAuth(`/emails/${emailId}/move`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ folder_id }),
+    });
+    return res.json();
+  },
+
+  bulkMoveEmails: async (emailIds: string[], folder_id: string) => {
+    const res = await fetchWithAuth('/emails/bulk-move', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email_ids: emailIds, folder_id }),
     });
     return res.json();
   },

@@ -361,9 +361,17 @@ export function AdminDashboard() {
                           <tr key={u.id} className="hover:bg-gray-50/80 transition-colors">
                             <td className="px-5 py-3.5">
                               <div className="flex items-center gap-3">
-                                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shadow-xs shrink-0 ${avatarBg}`}>
-                                  {initial}
-                                </div>
+                                {u.avatar ? (
+                                  <img 
+                                    src={u.avatar} 
+                                    alt={u.name || u.email} 
+                                    className="w-9 h-9 rounded-full object-cover shadow-xs shrink-0 ring-1 ring-black/10" 
+                                  />
+                                ) : (
+                                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm shadow-xs shrink-0 ${avatarBg}`}>
+                                    {initial}
+                                  </div>
+                                )}
                                 <div className="min-w-0">
                                   <div className="font-semibold text-gray-900 truncate">
                                     {u.name || u.email.split('@')[0]}

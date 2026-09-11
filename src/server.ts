@@ -103,7 +103,7 @@ app.get('/api/contacts', async (c) => {
   try {
     // 1. All domain users
     const { results: domainUsers } = await c.env.DB.prepare(
-      'SELECT id, name, email, is_admin FROM users ORDER BY email ASC'
+      'SELECT id, name, email, avatar, is_admin FROM users ORDER BY email ASC'
     ).all();
 
     // 2. Recent distinct senders and recipients from user's emails
@@ -111,7 +111,7 @@ app.get('/api/contacts', async (c) => {
       'SELECT sender, recipient FROM emails WHERE user_id = ? ORDER BY created_at DESC LIMIT 60'
     ).bind(userId).all();
 
-    const contactsMap = new Map<string, { email: string, name: string, is_domain_user: boolean, is_admin: boolean }>();
+    const contactsMap = new Map<string, { email: string, name: string, avatar?: string, is_domain_user: boolean, is_admin: boolean }>();
 
     // Add domain users
     if (domainUsers) {
@@ -119,6 +119,7 @@ app.get('/api/contacts', async (c) => {
         contactsMap.set(u.email.toLowerCase(), {
           email: u.email,
           name: u.name || u.email.split('@')[0],
+          avatar: u.avatar || undefined,
           is_domain_user: true,
           is_admin: u.is_admin === 1
         });
@@ -161,7 +162,7 @@ app.get('/api/contacts', async (c) => {
 // Get Profile
 app.get('/api/profile', async (c) => {
   const userId = c.get('userId');
-  const user = await c.env.DB.prepare('SELECT id, name, email, is_admin, created_at FROM users WHERE id = ?').bind(userId).first();
+  const user = await c.env.DB.prepare('SELECT id, name, email, avatar, is_admin, created_at FROM users WHERE id = ?').bind(userId).first();
   if (!user) return c.json({ error: 'Not found' }, 404);
   return c.json(user);
 });
@@ -169,18 +170,27 @@ app.get('/api/profile', async (c) => {
 // Update Profile
 app.put('/api/profile', async (c) => {
   const userId = c.get('userId');
-  const { name, password } = await c.req.json();
+  const { name, password, avatar } = await c.req.json();
   
   if (password) {
-    // In production, this must be a secure hash (e.g., bcrypt)
-    await c.env.DB.prepare('UPDATE users SET name = ?, password_hash = ? WHERE id = ?')
-      .bind(name, password, userId).run();
+    if (avatar !== undefined) {
+      await c.env.DB.prepare('UPDATE users SET name = ?, password_hash = ?, avatar = ? WHERE id = ?')
+        .bind(name, password, avatar, userId).run();
+    } else {
+      await c.env.DB.prepare('UPDATE users SET name = ?, password_hash = ? WHERE id = ?')
+        .bind(name, password, userId).run();
+    }
   } else {
-    await c.env.DB.prepare('UPDATE users SET name = ? WHERE id = ?')
-      .bind(name, userId).run();
+    if (avatar !== undefined) {
+      await c.env.DB.prepare('UPDATE users SET name = ?, avatar = ? WHERE id = ?')
+        .bind(name, avatar, userId).run();
+    } else {
+      await c.env.DB.prepare('UPDATE users SET name = ? WHERE id = ?')
+        .bind(name, userId).run();
+    }
   }
   
-  return c.json({ success: true, name });
+  return c.json({ success: true, name, avatar });
 });
 
 // Get folders
@@ -266,6 +276,38 @@ app.put('/api/emails/:id/move', async (c) => {
     .run();
 
   return c.json({ success: true, folder_id });
+});
+
+// Bulk move emails to folder
+app.put('/api/emails/bulk-move', async (c) => {
+  const userId = c.get('userId');
+  const { email_ids, folder_id } = await c.req.json();
+  if (!Array.isArray(email_ids) || email_ids.length === 0) {
+    return c.json({ error: 'Missing email_ids' }, 400);
+  }
+
+  const placeholders = email_ids.map(() => '?').join(',');
+  await c.env.DB.prepare(`UPDATE emails SET folder_id = ? WHERE id IN (${placeholders}) AND user_id = ?`)
+    .bind(folder_id, ...email_ids, userId)
+    .run();
+
+  return c.json({ success: true, count: email_ids.length, folder_id });
+});
+
+// Bulk star/unstar emails
+app.put('/api/emails/bulk-star', async (c) => {
+  const userId = c.get('userId');
+  const { email_ids, is_starred } = await c.req.json();
+  if (!Array.isArray(email_ids) || email_ids.length === 0) {
+    return c.json({ error: 'Missing email_ids' }, 400);
+  }
+
+  const placeholders = email_ids.map(() => '?').join(',');
+  await c.env.DB.prepare(`UPDATE emails SET is_starred = ? WHERE id IN (${placeholders}) AND user_id = ?`)
+    .bind(is_starred ? 1 : 0, ...email_ids, userId)
+    .run();
+
+  return c.json({ success: true, count: email_ids.length, is_starred });
 });
 
 // Download attachment
@@ -415,7 +457,7 @@ app.get('/api/admin/users', async (c) => {
     }
 
     const { results: users } = await c.env.DB.prepare(
-      'SELECT id, name, email, is_admin, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, name, email, avatar, is_admin, created_at FROM users ORDER BY created_at DESC'
     ).all();
 
     return c.json(users || []);

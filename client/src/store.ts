@@ -3,6 +3,7 @@ import { create } from 'zustand';
 export interface Contact {
   email: string;
   name: string;
+  avatar?: string;
   is_domain_user: boolean;
   is_admin: boolean;
 }
@@ -32,6 +33,10 @@ interface MailState {
   maxAttachmentMb: number;
   setMaxAttachmentMb: (mb: number) => void;
   rememberContact: (email: string, name?: string) => void;
+  emailsRefreshTrigger: number;
+  triggerEmailsRefresh: () => void;
+  draggedEmailIds: string[] | null;
+  setDraggedEmailIds: (ids: string[] | null) => void;
 }
 
 export const useMailStore = create<MailState>((set, get) => ({
@@ -67,6 +72,10 @@ export const useMailStore = create<MailState>((set, get) => ({
   setContacts: (contacts) => set({ contacts }),
   maxAttachmentMb: 15,
   setMaxAttachmentMb: (maxAttachmentMb) => set({ maxAttachmentMb }),
+  emailsRefreshTrigger: 0,
+  triggerEmailsRefresh: () => set((state) => ({ emailsRefreshTrigger: state.emailsRefreshTrigger + 1 })),
+  draggedEmailIds: null,
+  setDraggedEmailIds: (draggedEmailIds) => set({ draggedEmailIds }),
   rememberContact: (email: string, name?: string) => {
     if (!email || !email.includes('@')) return;
     const current = get().contacts;

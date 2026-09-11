@@ -5,14 +5,22 @@ import {
   RotateCw, 
   Inbox, 
   CheckSquare, 
-  Square
+  Square,
+  GripVertical
 } from 'lucide-react';
 import { useMailStore } from '../store';
 import { api } from '../api';
 import { parseAddress, formatGmailDate } from '../utils/formatters';
 
 export function EmailList() {
-  const { currentFolder, setSelectedEmailId, searchQuery } = useMailStore();
+  const { 
+    currentFolder, 
+    setSelectedEmailId, 
+    searchQuery, 
+    emailsRefreshTrigger,
+    draggedEmailIds,
+    setDraggedEmailIds 
+  } = useMailStore();
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [folders, setFolders] = useState<any[]>([]);
@@ -37,7 +45,7 @@ export function EmailList() {
   useEffect(() => {
     fetchEmails();
     setSelectedIds(new Set());
-  }, [currentFolder, searchQuery]);
+  }, [currentFolder, searchQuery, emailsRefreshTrigger]);
 
   useEffect(() => {
     api.getFolders().then(setFolders).catch(console.error);
@@ -168,20 +176,45 @@ export function EmailList() {
           emails.map(email => {
             const isUnread = !email.read_status;
             const isSelected = selectedIds.has(email.id);
+            const isDragging = draggedEmailIds?.includes(email.id);
             const parsed = parseAddress(email.sender);
 
             return (
               <div
                 key={email.id}
+                draggable={true}
+                onDragStart={(e) => {
+                  const idsToDrag = selectedIds.has(email.id)
+                    ? Array.from(selectedIds)
+                    : [email.id];
+                  setDraggedEmailIds(idsToDrag);
+                  e.dataTransfer.setData('application/json', JSON.stringify({ emailIds: idsToDrag }));
+                  e.dataTransfer.setData('text/plain', idsToDrag.join(','));
+                  e.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragEnd={() => {
+                  setDraggedEmailIds(null);
+                }}
                 onClick={() => setSelectedEmailId(email.id)}
-                className={`group flex items-center px-4 py-2.5 cursor-pointer text-sm transition-colors border-l-4 ${
-                  isSelected 
-                    ? 'bg-[#C2DBFE]/30 border-primary' 
-                    : isUnread 
-                      ? 'bg-white border-transparent font-semibold' 
-                      : 'bg-[#F2F6FC]/50 border-transparent text-gray-600'
+                className={`group flex items-center px-4 py-2.5 cursor-pointer text-sm transition-all border-l-4 select-none ${
+                  isDragging
+                    ? 'opacity-40 bg-blue-50 border-primary border-dashed scale-[0.99]'
+                    : isSelected 
+                      ? 'bg-[#C2DBFE]/30 border-primary' 
+                      : isUnread 
+                        ? 'bg-white border-transparent font-semibold' 
+                        : 'bg-[#F2F6FC]/50 border-transparent text-gray-600'
                 } hover:shadow-gmail hover:border-l-primary hover:bg-[#F2F6FC]`}
               >
+                {/* Drag Handle Icon on hover */}
+                <div 
+                  className="opacity-0 group-hover:opacity-100 -ml-2 mr-1 text-gray-400 hover:text-gray-700 cursor-grab active:cursor-grabbing transition-opacity shrink-0" 
+                  title="Drag and drop to move folder"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <GripVertical size={15} />
+                </div>
+
                 {/* Checkbox */}
                 <div 
                   onClick={(e) => toggleSelectOne(e, email.id)}

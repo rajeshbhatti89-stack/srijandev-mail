@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import { Search, X, Settings, LogOut, Menu, Mail } from 'lucide-react';
+import { Search, X, Settings, LogOut, Menu, Mail, Camera } from 'lucide-react';
 import { useMailStore } from '../store';
 import { api } from '../api';
 import { getAvatarColor } from '../utils/formatters';
@@ -26,37 +26,34 @@ export function Header() {
   }, [setUserProfile]);
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setDropdownOpen(false);
       }
-    }
+    };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const userInitial = userProfile?.name 
-    ? userProfile.name.charAt(0).toUpperCase() 
-    : (userProfile?.email ? userProfile.email.charAt(0).toUpperCase() : 'U');
-
-  const avatarBg = getAvatarColor(userProfile?.email || 'user');
+  const userInitial = (userProfile?.name || userProfile?.email || 'U').charAt(0).toUpperCase();
+  const avatarBg = getAvatarColor(userProfile?.email || 'default');
 
   return (
-    <header className="h-16 px-4 flex items-center justify-between shrink-0 bg-background z-30 select-none">
-      {/* Left: Hamburger & Brand */}
-      <div className="flex items-center gap-2 sm:gap-3 w-auto md:w-64 shrink-0">
+    <header className="h-16 px-4 flex items-center justify-between border-b border-borderLight bg-surface select-none sticky top-0 z-30">
+      {/* Left: Brand & Mobile Sidebar Toggle */}
+      <div className="flex items-center gap-3">
         <button
           onClick={() => setSidebarOpen(!isSidebarOpen)}
-          className="p-2 sm:p-2.5 rounded-full hover:bg-black/5 text-textMuted hover:text-textMain transition-colors"
+          className="p-2 rounded-full hover:bg-black/5 text-gray-600 transition-colors"
           title="Main menu"
         >
           <Menu size={20} />
         </button>
 
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => useMailStore.getState().setView('mail')}>
+        <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => useMailStore.getState().setView('mail')}>
           {/* Gmail-style Brand Icon */}
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm shrink-0">
-            <Mail size={20} className="stroke-[2.2]" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-700 via-blue-600 to-cyan-500 flex items-center justify-center text-white shadow-xs">
+            <Mail size={18} />
           </div>
           <div className="hidden sm:flex items-baseline">
             <span className="font-semibold text-xl tracking-tight text-gray-800">SrijanDev</span>
@@ -93,7 +90,7 @@ export function Header() {
       <div className="flex items-center gap-1.5" ref={dropdownRef}>
         <button 
           onClick={() => setProfileModalOpen(true)}
-          className="p-2 rounded-full hover:bg-black/5 text-gray-600 hover:text-gray-900 transition-colors"
+          className="p-2 rounded-full hover:bg-black/5 text-gray-600 hover:text-gray-900 transition-colors cursor-pointer"
           title="Settings"
         >
           <Settings size={20} />
@@ -103,12 +100,20 @@ export function Header() {
         <div className="relative ml-2">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="flex items-center justify-center p-0.5 rounded-full hover:ring-4 hover:ring-black/5 transition-all"
+            className="flex items-center justify-center p-0.5 rounded-full hover:ring-4 hover:ring-black/5 transition-all cursor-pointer"
             title={userProfile?.email || 'Google Account'}
           >
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center font-medium text-sm shadow-sm ${avatarBg}`}>
-              {userInitial}
-            </div>
+            {userProfile?.avatar ? (
+              <img 
+                src={userProfile.avatar} 
+                alt="Profile" 
+                className="w-9 h-9 rounded-full object-cover shadow-sm ring-1 ring-black/10" 
+              />
+            ) : (
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-medium text-sm shadow-sm text-white ${avatarBg}`}>
+                {userInitial}
+              </div>
+            )}
           </button>
 
           {/* Google Account Profile Card Modal */}
@@ -119,8 +124,29 @@ export function Header() {
                   {userProfile?.email}
                 </div>
                 
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mb-2 shadow-sm ${avatarBg}`}>
-                  {userInitial}
+                {/* Clickable Avatar to Edit Picture */}
+                <div 
+                  className="relative group cursor-pointer mb-2"
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    setProfileModalOpen(true);
+                  }}
+                  title="Change Profile Picture"
+                >
+                  {userProfile?.avatar ? (
+                    <img 
+                      src={userProfile.avatar} 
+                      alt="Profile" 
+                      className="w-16 h-16 rounded-full object-cover shadow-md ring-2 ring-blue-100 group-hover:brightness-90 transition-all" 
+                    />
+                  ) : (
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow-sm text-white ${avatarBg} group-hover:brightness-90 transition-all`}>
+                      {userInitial}
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 right-0 p-1 bg-white rounded-full shadow-md text-gray-600 border border-gray-200 group-hover:scale-110 transition-transform">
+                    <Camera size={13} />
+                  </div>
                 </div>
 
                 <h3 className="font-semibold text-gray-900 text-lg">
