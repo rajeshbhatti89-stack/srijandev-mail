@@ -1,11 +1,11 @@
-name = "srijandev-platform-hub"
+name = "srijandev-mail"
 main = "src/index.ts"
 compatibility_date = "2024-08-06"
 compatibility_flags = ["nodejs_compat"]
 
 workers_dev = true
 routes = [
-  { pattern = "mail.srijandev.in/*", zone_name = "srijandev.in" }
+  { pattern = "mail.srijandev.in", custom_domain = true }
 ]
 
 [assets]

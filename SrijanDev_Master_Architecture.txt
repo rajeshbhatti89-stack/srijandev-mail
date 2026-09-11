@@ -1,0 +1,14 @@
+[SYSTEM CONTEXT FOR ALL BACKEND TASKS - SRIJANDEV]
+Current Stack & Architecture:
+
+Domain: srijandev.in (Registered on BigRock)
+
+DNS & Routing: Cloudflare (Strictly Serverless)
+
+Email Infrastructure: Cloudflare Email Routing (route1/route2/route3.mx.cloudflare.net). No traditional VPS/Docker/Postfix mail servers.
+
+Processing: Cloudflare Email Workers connected to Resend API (RESEND_API_KEY).
+
+Frontend UI: Hosted at mail.srijandev.in (React/Next.js).
+
+Directive: All backend code, scripts, and debugging steps provided must strictly adhere to this Serverless Cloudflare + Resend architecture. Do not suggest traditional server setups.

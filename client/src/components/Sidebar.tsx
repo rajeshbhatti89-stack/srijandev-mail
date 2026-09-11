@@ -1,70 +1,148 @@
 import { useEffect, useState } from 'react';
-import { Inbox, Send, FileEdit, Archive, Trash2, LogOut } from 'lucide-react';
+import { 
+  Inbox, 
+  Send, 
+  FileText, 
+  Trash2, 
+  Star, 
+  ShieldAlert, 
+  Edit3,
+  HardDrive
+} from 'lucide-react';
 import { useMailStore } from '../store';
 import { api } from '../api';
 
-const iconMap: Record<string, React.ReactNode> = {
+const folderIconMap: Record<string, React.ReactNode> = {
   inbox: <Inbox size={18} />,
   sent: <Send size={18} />,
-  drafts: <FileEdit size={18} />,
-  archive: <Archive size={18} />,
+  drafts: <FileText size={18} />,
   trash: <Trash2 size={18} />,
+  starred: <Star size={18} />,
   custom: <Inbox size={18} />
 };
 
 export function Sidebar() {
-  const { currentFolder, setCurrentFolder, setToken, setComposeOpen } = useMailStore();
+  const { 
+    currentFolder, 
+    setCurrentFolder, 
+    setComposeOpen, 
+    isAdmin, 
+    view, 
+    setView,
+    maxAttachmentMb
+  } = useMailStore();
+
   const [folders, setFolders] = useState<any[]>([]);
 
   useEffect(() => {
-    api.getFolders().then(setFolders).catch(console.error);
-  }, []);
+    api.getFolders().then((f) => {
+      setFolders(f);
+      if (f.length > 0 && !currentFolder) {
+        setCurrentFolder(f[0].id);
+      }
+    }).catch(console.error);
+  }, [currentFolder, setCurrentFolder]);
+
+  const handleSelectFolder = (id: string) => {
+    setView('mail');
+    setCurrentFolder(id);
+  };
+
+  const handleSelectAdmin = () => {
+    setView('admin');
+  };
 
   return (
-    <div className="w-64 bg-surface border-r border-borderDark flex flex-col h-full">
-      <div className="p-4 flex items-center gap-2">
-        <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center font-bold">S</div>
-        <span className="font-semibold text-lg tracking-tight">Mail</span>
-      </div>
-
-      <div className="px-4 py-2">
+    <aside className="w-64 flex flex-col h-full bg-background select-none pr-3 pt-2">
+      {/* Gmail Compose Pill Button */}
+      <div className="px-4 pb-4">
         <button 
           onClick={() => setComposeOpen(true)}
-          className="w-full bg-primary hover:bg-blue-600 text-white font-medium py-2 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-sm"
+          className="flex items-center gap-3.5 bg-primaryLight hover:bg-[#B3E1FF] text-primaryLightText px-6 py-4 rounded-2xl shadow-gmail hover:shadow-gmail-compose transition-all font-medium text-sm group"
         >
-          <FileEdit size={18} />
-          Compose
+          <Edit3 size={20} className="text-gray-800 group-hover:scale-105 transition-transform" />
+          <span className="font-medium tracking-wide">Compose</span>
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-2">
-        <div className="px-3 space-y-1">
-          {folders.map(folder => (
+      {/* Gmail Folder Navigation List */}
+      <div className="flex-1 overflow-y-auto space-y-0.5">
+        {/* Starred */}
+        <button
+          onClick={() => handleSelectFolder('starred')}
+          className={`w-full flex items-center gap-4 px-6 py-2.5 rounded-r-full text-sm transition-colors ${
+            view === 'mail' && currentFolder === 'starred'
+              ? 'bg-surfaceActive text-blue-900 font-bold'
+              : 'text-textMuted hover:bg-[#EAEEF4] hover:text-textMain font-medium'
+          }`}
+        >
+          <span className={view === 'mail' && currentFolder === 'starred' ? 'text-blue-900' : 'text-gray-500'}>
+            <Star size={18} className={view === 'mail' && currentFolder === 'starred' ? 'fill-blue-900' : ''} />
+          </span>
+          <span>Starred</span>
+        </button>
+
+        {/* Database Folders (Inbox, Sent, Drafts, Trash) */}
+        {folders.map(folder => {
+          const isActive = view === 'mail' && currentFolder === folder.id;
+          const icon = folderIconMap[folder.type] || folderIconMap.custom;
+
+          return (
             <button
               key={folder.id}
-              onClick={() => setCurrentFolder(folder.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-colors ${
-                currentFolder === folder.id 
-                  ? 'bg-primary/10 text-primary font-medium' 
-                  : 'text-textMuted hover:bg-surfaceHighlight hover:text-textMain'
+              onClick={() => handleSelectFolder(folder.id)}
+              className={`w-full flex items-center justify-between px-6 py-2.5 rounded-r-full text-sm transition-colors ${
+                isActive
+                  ? 'bg-surfaceActive text-blue-900 font-bold'
+                  : 'text-textMuted hover:bg-[#EAEEF4] hover:text-textMain font-medium'
               }`}
             >
-              {iconMap[folder.type] || iconMap.custom}
-              {folder.name}
+              <div className="flex items-center gap-4">
+                <span className={isActive ? 'text-blue-900' : 'text-gray-500'}>
+                  {icon}
+                </span>
+                <span className="capitalize">{folder.name}</span>
+              </div>
             </button>
-          ))}
-        </div>
+          );
+        })}
+
+        {/* Admin Console Section (If admin) */}
+        {isAdmin && (
+          <div className="pt-4 mt-2 border-t border-borderLight/60">
+            <div className="px-6 text-[11px] font-semibold text-gray-500 uppercase tracking-wider mb-1">
+              Management
+            </div>
+            <button
+              onClick={handleSelectAdmin}
+              className={`w-full flex items-center gap-4 px-6 py-2.5 rounded-r-full text-sm transition-colors ${
+                view === 'admin'
+                  ? 'bg-surfaceActive text-blue-900 font-bold'
+                  : 'text-textMuted hover:bg-[#EAEEF4] hover:text-textMain font-medium'
+              }`}
+            >
+              <span className={view === 'admin' ? 'text-blue-900' : 'text-gray-500'}>
+                <ShieldAlert size={18} />
+              </span>
+              <span>Admin Console</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="p-4 border-t border-borderDark">
-        <button 
-          onClick={() => setToken(null)}
-          className="flex items-center gap-2 text-textMuted hover:text-textMain transition-colors w-full px-2"
-        >
-          <LogOut size={18} />
-          <span>Sign Out</span>
-        </button>
+      {/* Storage Limit Indicator (Gmail style) */}
+      <div className="p-4 border-t border-borderLight/80 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mb-1.5 font-medium text-gray-600">
+          <HardDrive size={14} className="text-gray-400" />
+          <span>Attachment Policy</span>
+        </div>
+        <div className="w-full bg-gray-200 h-1 rounded-full overflow-hidden mb-1">
+          <div className="bg-blue-600 h-full w-[25%]" />
+        </div>
+        <div className="text-[11px] text-gray-400">
+          Max {maxAttachmentMb} MB per message
+        </div>
       </div>
-    </div>
+    </aside>
   );
 }

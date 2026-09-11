@@ -5,8 +5,10 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE users (
   id TEXT PRIMARY KEY,
+  name TEXT,
   email TEXT UNIQUE NOT NULL,
   password_hash TEXT NOT NULL,
+  is_admin BOOLEAN DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -28,6 +30,7 @@ CREATE TABLE emails (
   text_body TEXT,
   html_body TEXT,
   read_status BOOLEAN DEFAULT 0,
+  is_starred BOOLEAN DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY(folder_id) REFERENCES folders(id) ON DELETE CASCADE
@@ -45,7 +48,7 @@ CREATE TABLE attachments (
 
 -- Insert initial admin user
 -- NOTE: In production, password should be hashed. Here we use a placeholder that the Hono API will accept for simplicity if needed, but we'll use a token for now.
-INSERT INTO users (id, email, password_hash) VALUES ('admin-1', 'admin@srijandev.in', 'hashed-password');
+INSERT INTO users (id, email, password_hash, is_admin) VALUES ('admin-1', 'admin@srijandev.in', 'hashed-password', 1);
 
 -- Initial folders for the admin user
 INSERT INTO folders (id, user_id, name, type) VALUES ('inbox-1', 'admin-1', 'Inbox', 'inbox');
