@@ -10,6 +10,8 @@ import { Header } from './components/Header';
 import { ProfileModal } from './components/ProfileModal';
 import { api } from './api';
 
+import { PwaInstallPrompt } from './components/PwaInstallPrompt';
+
 function App() {
   const token = useMailStore(s => s.token);
   const view = useMailStore(s => s.view);
@@ -28,7 +30,12 @@ function App() {
   }, [token, setContacts, setMaxAttachmentMb]);
 
   if (!token) {
-    return <Login />;
+    return (
+      <>
+        <Login />
+        <PwaInstallPrompt />
+      </>
+    );
   }
 
   return (
@@ -67,6 +74,7 @@ function App() {
 
       <ComposeModal />
       {isProfileModalOpen && <ProfileModal />}
+      <PwaInstallPrompt />
     </div>
   );
 }

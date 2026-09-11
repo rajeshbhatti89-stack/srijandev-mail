@@ -44,10 +44,10 @@ export function Header() {
   return (
     <header className="h-16 px-4 flex items-center justify-between shrink-0 bg-background z-30 select-none">
       {/* Left: Hamburger & Brand */}
-      <div className="flex items-center gap-3 w-64">
+      <div className="flex items-center gap-2 sm:gap-3 w-auto md:w-64 shrink-0">
         <button
           onClick={() => setSidebarOpen(!isSidebarOpen)}
-          className="p-2.5 rounded-full hover:bg-black/5 text-textMuted hover:text-textMain transition-colors"
+          className="p-2 sm:p-2.5 rounded-full hover:bg-black/5 text-textMuted hover:text-textMain transition-colors"
           title="Main menu"
         >
           <Menu size={20} />
@@ -55,10 +55,10 @@ export function Header() {
 
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => useMailStore.getState().setView('mail')}>
           {/* Gmail-style Brand Icon */}
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white shadow-sm shrink-0">
             <Mail size={20} className="stroke-[2.2]" />
           </div>
-          <div className="flex items-baseline">
+          <div className="hidden sm:flex items-baseline">
             <span className="font-semibold text-xl tracking-tight text-gray-800">SrijanDev</span>
             <span className="text-xl font-normal text-gray-500 ml-1">Mail</span>
           </div>

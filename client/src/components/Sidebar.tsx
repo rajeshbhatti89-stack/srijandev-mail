@@ -29,7 +29,8 @@ export function Sidebar() {
     isAdmin, 
     view, 
     setView,
-    maxAttachmentMb
+    maxAttachmentMb,
+    setSidebarOpen
   } = useMailStore();
 
   const [folders, setFolders] = useState<any[]>([]);
@@ -46,19 +47,40 @@ export function Sidebar() {
   const handleSelectFolder = (id: string) => {
     setView('mail');
     setCurrentFolder(id);
+    setSidebarOpen(false);
   };
 
   const handleSelectAdmin = () => {
     setView('admin');
+    setSidebarOpen(false);
   };
 
   return (
-    <aside className="w-64 flex flex-col h-full bg-background select-none pr-3 pt-2">
+    <aside className="w-72 md:w-64 flex flex-col h-full bg-white md:bg-background select-none pr-3 pt-2 shadow-2xl md:shadow-none border-r border-borderLight md:border-none">
+      {/* Mobile Drawer Header with Close Button */}
+      <div className="flex md:hidden items-center justify-between px-4 pb-3 pt-1 border-b border-borderLight mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+            <Inbox size={16} />
+          </div>
+          <span className="font-bold text-gray-800 text-base">SrijanDev Mail</span>
+        </div>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="p-1.5 rounded-full hover:bg-gray-100 text-gray-500"
+        >
+          ✕
+        </button>
+      </div>
+
       {/* Gmail Compose Pill Button */}
       <div className="px-4 pb-4">
         <button 
-          onClick={() => setComposeOpen(true)}
-          className="flex items-center gap-3.5 bg-primaryLight hover:bg-[#B3E1FF] text-primaryLightText px-6 py-4 rounded-2xl shadow-gmail hover:shadow-gmail-compose transition-all font-medium text-sm group"
+          onClick={() => {
+            setComposeOpen(true);
+            setSidebarOpen(false);
+          }}
+          className="flex items-center gap-3.5 bg-primaryLight hover:bg-[#B3E1FF] text-primaryLightText px-6 py-4 rounded-2xl shadow-gmail hover:shadow-gmail-compose transition-all font-medium text-sm group w-full sm:w-auto"
         >
           <Edit3 size={20} className="text-gray-800 group-hover:scale-105 transition-transform" />
           <span className="font-medium tracking-wide">Compose</span>

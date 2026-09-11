@@ -325,10 +325,10 @@ export function ComposeModal() {
   return (
     <div className={`fixed z-50 transition-all duration-200 ${
       isMinimized 
-        ? 'bottom-0 right-8 w-72 h-10' 
-        : 'bottom-0 right-4 md:right-8 w-full md:w-[600px] h-[540px] max-h-[90vh]'
+        ? 'bottom-0 right-4 sm:right-8 w-72 h-10' 
+        : 'inset-0 sm:inset-auto sm:bottom-0 sm:right-8 w-full sm:w-[600px] h-full sm:h-[540px] sm:max-h-[90vh]'
     }`}>
-      <div className="bg-white rounded-t-2xl shadow-2xl border border-gray-300 flex flex-col h-full overflow-hidden">
+      <div className="bg-white sm:rounded-t-2xl shadow-2xl sm:border border-gray-300 flex flex-col h-full overflow-hidden">
         {/* Gmail Floating Compose Header */}
         <div className="px-4 py-2.5 bg-[#F2F6FC] border-b border-borderLight flex items-center justify-between select-none cursor-pointer"
              onClick={() => isMinimized && setIsMinimized(false)}>
